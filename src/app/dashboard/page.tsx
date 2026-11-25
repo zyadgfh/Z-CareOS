@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signOut } from "@/app/auth/actions";
 import { Onboarding } from "@/components/onboarding";
@@ -9,10 +10,22 @@ type ProfileRow = {
   tenants: { name: string; slug: string } | { name: string; slug: string }[];
 };
 
-const placeholderCards = [
-  { title: "Today", body: "Appointment schedule and visit queue — coming next." },
-  { title: "Patients", body: "Search, records, and follow-ups — coming next." },
-  { title: "Encounters", body: "Clinical documentation — coming next." },
+const cards: { title: string; body: string; href: string | null }[] = [
+  {
+    title: "Today",
+    body: "Appointment schedule and visit queue — coming next.",
+    href: null,
+  },
+  {
+    title: "Patients",
+    body: "Search, records, and follow-ups.",
+    href: "/dashboard/patients",
+  },
+  {
+    title: "Encounters",
+    body: "Clinical documentation — coming next.",
+    href: null,
+  },
 ];
 
 export default async function DashboardPage() {
@@ -33,8 +46,7 @@ export default async function DashboardPage() {
     .maybeSingle<ProfileRow>();
 
   if (!profile) {
-    const fullName =
-      (user.user_metadata?.full_name as string | undefined) ?? "";
+    const fullName = (user.user_metadata?.full_name as string | undefined) ?? "";
     return <Onboarding defaultName={fullName} />;
   }
 
@@ -62,34 +74,51 @@ export default async function DashboardPage() {
       </header>
 
       <p className="mt-2 text-sm text-slate-500">
-        Signed in as <span className="font-medium text-slate-700">{profile.full_name}</span>{" "}
-        · {profile.role}
+        Signed in as{" "}
+        <span className="font-medium text-slate-700">{profile.full_name}</span> ·{" "}
+        {profile.role}
       </p>
 
       <section className="mt-6 grid gap-3">
-        {placeholderCards.map((card) => (
-          <div
-            key={card.title}
-            className="rounded-2xl border border-slate-200 bg-white p-5"
-          >
-            <h2 className="font-semibold text-slate-900">{card.title}</h2>
-            <p className="mt-1 text-sm text-slate-500">{card.body}</p>
-          </div>
-        ))}
+        {cards.map((card) =>
+          card.href ? (
+            <Link
+              key={card.title}
+              href={card.href}
+              className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-brand-300 hover:bg-brand-50/40"
+            >
+              <h2 className="font-semibold text-slate-900">{card.title}</h2>
+              <p className="mt-1 text-sm text-slate-500">{card.body}</p>
+              <span className="mt-2 inline-block text-sm font-medium text-brand-700">
+                Open →
+              </span>
+            </Link>
+          ) : (
+            <div
+              key={card.title}
+              className="rounded-2xl border border-dashed border-slate-200 bg-white p-5 opacity-70"
+            >
+              <h2 className="font-semibold text-slate-900">{card.title}</h2>
+              <p className="mt-1 text-sm text-slate-500">{card.body}</p>
+            </div>
+          ),
+        )}
       </section>
 
       <nav className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/95 backdrop-blur">
         <ul className="mx-auto flex max-w-lg items-center justify-around px-2 py-2 text-xs font-medium text-slate-500">
-          {["Home", "Schedule", "Patients", "More"].map((item, i) => (
-            <li
-              key={item}
-              className={i === 0 ? "text-brand-700" : ""}
-            >
-              <button type="button" className="px-3 py-1.5" disabled={i !== 0}>
-                {item}
-              </button>
-            </li>
-          ))}
+          <li>
+            <Link href="/dashboard" className="px-3 py-1.5 text-brand-700">
+              Home
+            </Link>
+          </li>
+          <li>
+            <Link href="/dashboard/patients" className="px-3 py-1.5 hover:text-slate-700">
+              Patients
+            </Link>
+          </li>
+          <li className="px-3 py-1.5 opacity-50">Schedule</li>
+          <li className="px-3 py-1.5 opacity-50">More</li>
         </ul>
       </nav>
     </main>
